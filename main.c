@@ -2,6 +2,11 @@
 ENGG1003 Assignment 1
 Nick Duffy
 Style: Stroustrup
+High Level Operation:
+The program uses a series of functions to encrypt and decrypt text from an input text file and outputs encrypted / decrypted text to an output text file.
+An operation is selected from a text-based menu and the program enters a switch case for that specific operation triggering a series of functions to complete the desired task.
+Flow control mechanisms include the switch case previously mentioned and while loops to scan through strings and test / alter literal values.
+Each function is brielfy described before the are declared and explained in detail before they are defined.
 */
 
 #include <stdio.h> // Used to take inputs from the user
@@ -35,13 +40,13 @@ Opens input.txt and stores text in encryptedText as a string.
 int readEncrypted(char *encryptedText); // String as pointer as function should modify.
 
 /*
-Read Shift Function:
-Opens keyshift.txt and stores value as string in keyShift.
+Read Key Function:
+Opens cipherkey.txt and stores value as string in cipherKey.
 */
 
-int cipherKey(char cipherKey[]);
+int readKey(char cipherKey[]);
 /*
-Note: All file IO functions have an int return type because if a file cannot be opened the perror with trigger and cause an error message to be displayed and the program will be exited with a "return 0;"
+Note: All file IO functions have an int return type because if a file cannot be opened the perror function will trigger and cause an error message to be displayed and the program will be exited with a "return 0;"
 */
 
 /*
@@ -57,6 +62,26 @@ Returns string plainText and used function literal encryptedText[] as to not mod
 */
 
 void rotationDecryption(char encryptedText[], char *plainText, int keyShift);
+
+/*
+Substitution Encryption Function:
+Substitutes literal values of string plainText using another string cipherKey to encrypt text.
+*/
+
+void substitutionEncryption(char plainText[], char *encryptedText, char cipherKey[]);
+
+/*
+Substitution Decryption Function:
+Substitutes literal values of string encryptedText using another string cipherKey to decrypt text.
+*/
+
+void substitutionDecryption(char encryptedText[], char *plainText, char cipherKey[]);
+
+/*
+Cipher Check Function:
+Tests values of cipherKey to find the postion where its match lies.
+*/
+int cipherCheck(char cipherKey[], char encryptedText);
 
 /*
 Case Conversion Function:
@@ -88,7 +113,7 @@ int main() {
       switch (menu) {
         case 1:
           printf("Text to be encrypted will now be read from input.txt ... \n");
-          readPlain(plainText);
+          readPlain(plainText); // Opens input.txt and writes to plainText string.
           caseConversion(plainText);
           printf("Text found:");
           puts(plainText);
@@ -121,11 +146,39 @@ int main() {
         printf("Decrypted text:");
         puts(plainText);
         break;
-        case 3: /*substitutionEncryption();*/ break;
-        case 4: /*substitutionDecryption();*/ break;
+        case 3:
+        printf("Text to be encrypted will now be read from input.txt ... \n");
+        readPlain(plainText);
+        caseConversion(plainText);
+        printf("Text found:");
+        puts(plainText);
+        printf("Cipher key will now be read from cipherkey.txt ... \n");
+        readKey(cipherKey);
+        printf("Cipher found:");
+        puts(cipherKey);
+        substitutionEncryption(plainText, encryptedText, cipherKey);
+        writeEncrypted(encryptedText);
+        printf("Encrypted text:");
+        puts(encryptedText);
+        break;
+        case 4:
+        printf("Text to be decrypted will now be read from input.txt ... \n");
+        readEncrypted(encryptedText);
+        caseConversion(encryptedText);
+        printf("Text found:");
+        puts(encryptedText);
+        printf("Cipher key will now be read from cipherkey.txt ... \n");
+        readKey(cipherKey);
+        printf("Cipher found:");
+        puts(cipherKey);
+        substitutionDecryption(encryptedText, plainText, cipherKey);
+        writeDecrypted(plainText);
+        printf("Decrypted text:");
+        puts(plainText);
+        break;
         default: printf("Invalid input, please try again\n");
       }
-  } while(menu < 1 || menu > 4);
+  } while(menu < 1 || menu > 4); // Allows user to re-attempt menu selction should they have a temporary lapse of motor control (press the wrong button).
 
 
   return 0;
@@ -133,7 +186,8 @@ int main() {
 
 /*
 Read Plain Function:
-Uses C file I/O to open input.txt text file and store text to plainText string to be encrypted by another function.
+Uses stdio.h to open input.txt text file and store text to plainText string to be encrypted by another function.
+FILE * fp sets the file structure and fopen sets the file pointer (fp) to the desired file (input.txt)
 */
 
 int readPlain(char *plainText) { // plainText as pointer as function should modify.
@@ -151,7 +205,8 @@ int readPlain(char *plainText) { // plainText as pointer as function should modi
 
 /*
 Write Encrypted Function:
-Uses C file I/O to open output.txt text file and write encryptedText string.
+Uses stdio.h to open output.txt text file and write encryptedText string.
+FILE * fp sets the file structure and fopen sets the file pointer (fp) to the desired file (output.txt)
 */
 
 int writeEncrypted(char encryptedText[]) {  // encryptedText as literal as it shouldn't modify string
@@ -169,7 +224,8 @@ int writeEncrypted(char encryptedText[]) {  // encryptedText as literal as it sh
 
 /*
 Read Encrypted Function:
-Uses C file I/O to open input.txt text file and store text to encryptedText string to be decrypted by another function.
+Uses stdio.h to open input.txt text file and store text to encryptedText string to be decrypted by another function.
+FILE * fp sets the file structure and fopen sets the file pointer (fp) to the desired file (input.txt)
 */
 
 int readEncrypted(char *encryptedText) { // plainText as pointer as function should modify.
@@ -187,7 +243,8 @@ int readEncrypted(char *encryptedText) { // plainText as pointer as function sho
 
 /*
 Write Decrypted Function:
-Uses C file I/O to open output.txt text file and write plainText string.
+Uses stdio.h to open output.txt text file and write plainText string.
+FILE * fp sets the file structure and fopen sets the file pointer (fp) to the desired file (output.txt)
 */
 
 int writeDecrypted(char plainText[]) { // plainText as literal as it shouldn't modify string
@@ -204,13 +261,14 @@ int writeDecrypted(char plainText[]) { // plainText as literal as it shouldn't m
 }
 
 /*
-Read Shift Function:
-
+Read Key Function:
+Uses stdio.h functions to read text from cipherkey.txt and store as a string in cipherKey.
+FILE * fp sets the file structure and fopen sets the file pointer (fp) to the desired file (cipherkey.txt)
 */
 
-int cipherKey(char cipherKey[]) {
+int readKey(char cipherKey[]) {
   FILE * fp;
-  fp = fopen("cipherKey.txt", "r");
+  fp = fopen("cipherkey.txt", "r");
   if(fp == NULL) {
     perror("Error opening file"); // If file cannot be opened returns an error message to the user and exits program.
     return(0);
@@ -267,7 +325,7 @@ void rotationEncryption(char plainText[], char *encryptedText, int keyShift) {
 
 /*
 Rotation Decryption Function:
-Based on equation d(c) = (c - k)(mod 26) from the assingment outline this function writes each charater to from encryptedText to plainText.
+Based on equation d(c) = (c - k)(mod 26) from the assingment outline this function writes each charater from encryptedText to plainText.
 By using an if statment the fucntion detects uppercase ASCII characters by testing if literal value falls between the uppercase ASCII range (65 - 90).
 When it detects an uppercase charater it applies the d(c) = (c - k)(mod 26) equation to them, otherwise writing to plainText unchanged, thus converting
 only applicable characters.
@@ -290,4 +348,68 @@ void rotationDecryption(char encryptedText[], char *plainText, int keyShift) {
     i++;
   }
 }
+
+/*
+Substitution Encryption Function:
+The substitiution encryption function works on the principle that each literal value from 'A' - 'Z' has a corresponding literal value in cipherKey[].
+By creating a loop an expression cipherValue is used to find an integer for each literal value such that 'A' - 'Z' is set = 0 - 25
+Hence cipherValue = 0 when plainText['A'], this is used in encryptedText[i] = cipherKey[cipherValue] so when plainText[i] is = 'A' cipherValue is equal to 0.
+When cipherValue is = 0 the first value of the cipherKey is used to substitute 'A', the second value of the cipher for plainText['B'] and so on.
+Any literal values outside of the uppercase ASCII range are written to encryptedText as is.
+*/
+
+void substitutionEncryption(char plainText[], char *encryptedText, char cipherKey[]) {
+  int i = 0;
+  while(plainText[i] != '\0') {
+    int cipherValue = (plainText[i] - 'A'); // Sets 'A' = 0, 'B' = 1, 'C' = 2, ... 'Z' = 25
+    if(plainText[i] >= 65 && plainText[i] <= 90){
+      encryptedText[i] = cipherKey[cipherValue];
+    }
+    else{
+      encryptedText[i] = plainText[i];
+    }
+    i++;
+  }
+}
+
+/*
+Substitution Decryption Function:
+The substitiution decryption function works on the principle that each literal value from 'A' - 'Z' has a corresponding literal value in cipherKey[].
+A while loop finds the literal value of each element of encryptedText and passes this value to the function cipherCheck() to test each value of cipherKey.
+cipherCheck() returns an integer corresponding to the array element of cipherKey that matches with the literal value of encryptedText initially passed to the function.
+When encryptedText is = 0 the corresponding literal value of cipherKey (cipherValue) is used to substitute 'A', encryptedText[] = 1 the corresponding cipherKey value (cipherValue) is used to substitute 'B' and so on.
+Hence plainText can be found by taking the cipherValue of each element of encryptedText and adding 'A' as 'A' was subtracted prior to encryption in substitutionEncryption() function.
+Any literal values outside of the uppercase ASCII range are written to plainText as is.
+*/
+
+void substitutionDecryption(char encryptedText[], char *plainText, char cipherKey[]) {
+  int i = 0;
+  while(encryptedText[i] != '\0') {
+    if(encryptedText[i] >= 65 && encryptedText[i] <= 90){
+      int cipherValue = cipherCheck(cipherKey, encryptedText[i]);
+      plainText[i] = cipherValue + 'A'; // As 'A' was subtracted prior to encryption.
+    }
+    else{
+      plainText[i] = encryptedText[i];
+    }
+    i++;
+  }
+}
+
+/*
+Cipher Check Function:
+Uses a while loop to scan the string cipherKey.
+Returns an integer corresponding to the array element of cipherKey that has a literal value equal to the value of string encryptedText passed to function.
+*/
+
+int cipherCheck(char cipherKey[], char encryptedText) {
+  int i = 0;
+  while(i < 25) {
+    if(cipherKey[i] == encryptedText) {
+      return i;
+    }
+    i++;
+  }
+}
+
 //}
