@@ -10,7 +10,7 @@ Style: Stroustrup
 Rotation Encryption Function
 Returns char encryptedText and uses function literal plainText[] as to not modify original plainText.
 */
-char rotationEncryption(char plainText[], int keyShift);
+void rotationEncryption(char plainText[],char *encryptedText, int keyShift);
 
 /*
 Case Conversion Function:
@@ -38,17 +38,16 @@ int main() {
       switch (menu) {
         case 1:
           printf("Enter text to be encrypted:\n");
-          gets(plainText); // Stores string in plainText
+          scanf("%s", plainText);// Stores string in plainText
           caseConversion(plainText);
           printf("Enter enter an integer to rotate the cipher by:\n");
-          scanf("%d\n", &keyShift);
+          scanf("%d", &keyShift);
           keyShift = (keyShift % 26);
           /*If user enters value > 25 key shift value is equivalent to if cipher made multiple rotations.
           Eg. if user enter "26" then cipher rotation is equivalent to a full rotation such that 26 = 0 and text is unchanged.
-          *
-          rotationEncryption(plainText, keyShift);
-          printf("The encrypted text is: %s\n", encryptedText);
           */
+          rotationEncryption(plainText, encryptedText, keyShift);
+          puts(encryptedText);
         break;
         case 2: /*rotationDecryption();*/ break;
         case 3: /*substitutionEncryption();*/ break;
@@ -79,13 +78,17 @@ void caseConversion(char *plainText) {
   }
 }
 
-char rotationEncryption(char plainText[], int keyShift) {
-/*
-  store in array
-  create for loop
-  if ascii value is capital run formula
-  else if ascii value is lowercase convert then run formula
-  else plain[i] = encrypted[i]
-*/
+void rotationEncryption(char plainText[], char *encryptedText, int keyShift) {
+  int i = 0;
+  while(plainText[i] != '\0') {
+    if(plainText[i] >= 65 && plainText[i] <= 90){
+      encryptedText[i] = ((plainText[i] - 65 + keyShift) % 26 + 65);
+    }
+    else {
+      encryptedText[i] = plainText[i];
+    }
+    i++;
+  }
+}
 
 //}
