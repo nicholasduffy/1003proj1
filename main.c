@@ -25,7 +25,7 @@ Write Plain Function:
 Opens output.txt and writes string plainText.
 */
 
-int writePlain(char plainText[]); // String as literal as function shouldn't modify original.
+int writeDecrypted(char plainText[]); // String as literal as function shouldn't modify original.
 
 /*
 Read Encrypted Function:
@@ -33,6 +33,16 @@ Opens input.txt and stores text in encryptedText as a string.
 */
 
 int readEncrypted(char *encryptedText); // String as pointer as function should modify.
+
+/*
+Read Shift Function:
+Opens keyshift.txt and stores value as string in keyShift.
+*/
+
+int cipherKey(char cipherKey[]);
+/*
+Note: All file IO functions have an int return type because if a file cannot be opened the perror with trigger and cause an error message to be displayed and the program will be exited with a "return 0;"
+*/
 
 /*
 Rotation Encryption Function:
@@ -59,6 +69,7 @@ int main() {
   char plainText[1024];
   char encryptedText[1024];
   int keyShift;
+  char cipherKey[27];
 
   /*
   Basic text-based menu, printf() used multiple times to keep code clean as opposed to one extended line.
@@ -76,20 +87,21 @@ int main() {
     scanf("%d", &menu); // Note: \n is not used here it creates an issue where the while condition must be false twice before exiting
       switch (menu) {
         case 1:
-          printf("Text to be encrypted will now be read from input.txt ...\n");
+          printf("Text to be encrypted will now be read from input.txt ... \n");
           readPlain(plainText);
           caseConversion(plainText);
           printf("Text found:");
           puts(plainText);
           printf("Enter enter an integer to rotate the cipher by:\n");
           scanf("%d", &keyShift);
-          keyShift = (keyShift % 26);
           /*If user enters value > 25 key shift value is equivalent to if cipher made multiple rotations.
           Eg. if user enter "26" then cipher rotation is equivalent to a full rotation such that 26 = 0 and text is unchanged.
           */
           rotationEncryption(plainText, encryptedText, keyShift);
           writeEncrypted(encryptedText);
           printf("Encrypted text has been written to output.txt\n");
+          printf("Encrypted text:");
+          puts(encryptedText);
         break;
         case 2:
         printf("Text to be decrypted will now be read from input.txt ...\n");
@@ -104,8 +116,10 @@ int main() {
         Eg. if user enter "26" then cipher rotation is equivalent to a full rotation such that 26 = 0 and text is unchanged.
         */
         rotationDecryption(encryptedText, plainText, keyShift);
-        writePlain(plainText);
+        writeDecrypted(plainText);
         printf("Decrypted text has been written to output.txt\n");
+        printf("Decrypted text:");
+        puts(plainText);
         break;
         case 3: /*substitutionEncryption();*/ break;
         case 4: /*substitutionDecryption();*/ break;
@@ -140,7 +154,7 @@ Write Encrypted Function:
 Uses C file I/O to open output.txt text file and write encryptedText string.
 */
 
-int writeEncrypted(char encryptedText[]) { // encryptedText as literal as it shouldn't modify string
+int writeEncrypted(char encryptedText[]) {  // encryptedText as literal as it shouldn't modify string
   FILE * fp;
   fp = fopen("output.txt", "w"); //Truncates the file length to zero if it already exists, limiting double outputs.
   if(fp == NULL) {
@@ -173,10 +187,10 @@ int readEncrypted(char *encryptedText) { // plainText as pointer as function sho
 
 /*
 Write Decrypted Function:
-Uses C file I/O to open output.txt text file and write decryptedText string.
+Uses C file I/O to open output.txt text file and write plainText string.
 */
 
-int writeDecrypted(char decryptedText[]) { // encryptedText as literal as it shouldn't modify string
+int writeDecrypted(char plainText[]) { // plainText as literal as it shouldn't modify string
   FILE * fp;
   fp = fopen("output.txt", "w"); //Truncates the file length to zero if it already exists, limiting double outputs.
   if(fp == NULL) {
@@ -184,11 +198,28 @@ int writeDecrypted(char decryptedText[]) { // encryptedText as literal as it sho
     return(0);
   }
   else {
-    fputs(decryptedText, fp); // writes string decryptedText to output.txt .
+    fputs(plainText, fp); // writes string plainText to output.txt .
   }
   fclose(fp);
 }
 
+/*
+Read Shift Function:
+
+*/
+
+int cipherKey(char cipherKey[]) {
+  FILE * fp;
+  fp = fopen("cipherKey.txt", "r");
+  if(fp == NULL) {
+    perror("Error opening file"); // If file cannot be opened returns an error message to the user and exits program.
+    return(0);
+  }
+  else {
+    fgets(cipherKey, 27, fp); // fgets function scans the text file and stores as string in cipherKey.
+  }
+  fclose(fp);
+}
 
 /*
 Case Conversion Function:
@@ -210,9 +241,9 @@ void caseConversion(char *plainText) {
 
 /*
 Rotation Encryption Function:
-Based on equation e(x) = (m + k)(mod 26) from the assingment outline this function writes each charater to from plainText to encryptedText.
+Based on equation e(m) = (m + k)(mod 26) from the assingment outline this function writes each charater to from plainText to encryptedText.
 By using an if statment the fucntion detects uppercase ASCII characters by testing if literal value falls between the uppercase ASCII range (65 - 90).
-When it detects an uppercase charater it applies the e(x) = (m + k)(mod 26) equation to them, otherwise writing to encryptedText unchanged, thus converting
+When it detects an uppercase charater it applies the e(m) = (m + k)(mod 26) equation to them, otherwise writing to encryptedText unchanged, thus converting
 only applicable characters.
 */
 
@@ -220,7 +251,7 @@ void rotationEncryption(char plainText[], char *encryptedText, int keyShift) {
   int i = 0;
   while(plainText[i] != '\0') {
     if(plainText[i] >= 65 && plainText[i] <= 90){
-      encryptedText[i] = ((plainText[i] - 65 + keyShift) % 26 + 65);
+      encryptedText[i] = (((plainText[i] - 65 + keyShift) + 26) % 26 + 65);
       /*
        As 'A' has an ASCII literal value of 65 this is subtracted from the equation before the modulus operator and added back after.
        For the purpose of the modulus operator this sets A = 0, B = 1, C = ... Z = 25.
@@ -246,7 +277,7 @@ void rotationDecryption(char encryptedText[], char *plainText, int keyShift) {
   int i = 0;
   while(encryptedText[i] != '\0') {
     if(encryptedText[i] >= 65 && encryptedText[i] <= 90){
-      plainText[i] = ((encryptedText[i] - 65 - keyShift) % 26 + 65);
+      plainText[i] = (((encryptedText[i] - 65 - keyShift) + 26) % 26 + 65);
       /*
        As above 'A' has an ASCII literal value of 65 this is subtracted from the equation before the modulus operator and added back after.
        For the purpose of the modulus operator this sets A = 0, B = 1, C = ... Z = 25.
@@ -254,7 +285,7 @@ void rotationDecryption(char encryptedText[], char *plainText, int keyShift) {
       */
     }
     else {
-      encryptedText[i] = plainText[i];
+      plainText[i] = encryptedText[i]; // Forgot to switch the sides of this cheeky bugger and it was only decrypting up until the first space.
     }
     i++;
   }
