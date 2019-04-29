@@ -5,8 +5,10 @@ Style: Stroustrup
 High Level Operation:
 The program uses a series of functions to encrypt and decrypt text from an input text file and outputs encrypted / decrypted text to an output text file.
 An operation is selected from a text-based menu and the program enters a switch case for that specific operation triggering a series of functions to complete the desired task.
+Text inputs (plain or encrypted text) is taken from input.txt and all outputs (decrypted/plain text or encrypted text) are written to output.txt, with the excemption of the ciper key.
+Supstituiton encryption / decryption requires a 26 character cipher key, this key must be written to cipherkey.txt for the program to function.
 Flow control mechanisms include the switch case previously mentioned and while loops to scan through strings and test / alter literal values.
-Each function is brielfy described before the are declared and explained in detail before they are defined.
+Each function is brielfy described before they are declared and explained in detail before they are defined.
 */
 
 #include <stdio.h> // Used to take inputs from the user
@@ -45,8 +47,9 @@ Opens cipherkey.txt and stores value as string in cipherKey.
 */
 
 int readKey(char cipherKey[]);
+
 /*
-Note: All file IO functions have an int return type because if a file cannot be opened the perror function will trigger and cause an error message to be displayed and the program will be exited with a "return 0;"
+Note: All file IO functions have an int return type because if a file cannot be opened the "perror" function will trigger and cause an error message to be displayed and the program will be exited with a "return 0;"
 */
 
 /*
@@ -81,11 +84,13 @@ void substitutionDecryption(char encryptedText[], char *plainText, char cipherKe
 Cipher Check Function:
 Tests values of cipherKey to find the postion where its match lies.
 */
+
 int cipherCheck(char cipherKey[], char encryptedText);
 
 /*
 Case Conversion Function:
-Returns void and uses *plainText pointer as it is modifying string.
+Returns void as it is modifying a string within the function and therefore does not need to return a seperate string.
+Uses *plainText pointer as it is modifying string.
 */
 
 void caseConversion(char *plainText);
@@ -94,15 +99,15 @@ int main() {
   char plainText[1024];
   char encryptedText[1024];
   int keyShift;
-  char cipherKey[27];
+  char cipherKey[27]; // Cipher key is 26 characters long so string must 27 bytes to accomodate 26 chars (1 byte each) and the '/0' NULL charater.
 
   /*
   Basic text-based menu, printf() used multiple times to keep code clean as opposed to one extended line.
-  Spaces before ordered list to indent list making the menu a little bit nicer.
+  Spaces before ordered list to indent list making the menu a little bit nicer to read.
   As seen in lecture with slight variation.
   */
 
-  int menu; // Initialises an integer to be used by the menu do while loop
+  int menu; // Initialises an integer to be used by the "menu" do while loop
   do {
     printf("Please select a task:\n");
     printf(" 1. Rotation Cipher Encryption\n");
@@ -119,8 +124,9 @@ int main() {
           puts(plainText);
           printf("Enter enter an integer to rotate the cipher by:\n");
           scanf("%d", &keyShift);
-          /*If user enters value > 25 key shift value is equivalent to if cipher made multiple rotations.
-          Eg. if user enter "26" then cipher rotation is equivalent to a full rotation such that 26 = 0 and text is unchanged.
+          /*
+          If user enters value > 25 key shift value is equivalent to if cipher made multiple rotations.
+          Eg. If user enter "26" then cipher rotation is equivalent to a full rotation such that 26 = 0 and text is unchanged.
           */
           rotationEncryption(plainText, encryptedText, keyShift);
           writeEncrypted(encryptedText);
@@ -138,7 +144,7 @@ int main() {
         scanf("%d", &keyShift);
         keyShift = (keyShift % 26);
         /*As above if user enters value > 25 key shift value is equivalent to if cipher made multiple rotations.
-        Eg. if user enter "26" then cipher rotation is equivalent to a full rotation such that 26 = 0 and text is unchanged.
+        Eg. If user enter "26" then cipher rotation is equivalent to a full rotation such that 26 = 0 and text is unchanged.
         */
         rotationDecryption(encryptedText, plainText, keyShift);
         writeDecrypted(plainText);
@@ -158,6 +164,7 @@ int main() {
         puts(cipherKey);
         substitutionEncryption(plainText, encryptedText, cipherKey);
         writeEncrypted(encryptedText);
+        printf("Encrypted text has been written to output.txt\n");
         printf("Encrypted text:");
         puts(encryptedText);
         break;
@@ -173,6 +180,7 @@ int main() {
         puts(cipherKey);
         substitutionDecryption(encryptedText, plainText, cipherKey);
         writeDecrypted(plainText);
+        printf("Decrypted text has been written to output.txt\n");
         printf("Decrypted text:");
         puts(plainText);
         break;
@@ -184,7 +192,7 @@ int main() {
   return 0;
 }
 
-/*
+/*4
 Read Plain Function:
 Uses stdio.h to open input.txt text file and store text to plainText string to be encrypted by another function.
 FILE * fp sets the file structure and fopen sets the file pointer (fp) to the desired file (input.txt)
